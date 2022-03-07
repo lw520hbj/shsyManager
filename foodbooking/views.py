@@ -3,8 +3,13 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.template import loader
 from .models import FoodInfo,FoodBooker
 import time
+import datetime
 from shsyManager.settings import MEDIA_ROOT
 # Create your views here.
+
+week_dic = {
+    0: "周一", 1: "周二", 2: "周三", 3: "周四", 4: "周五", 5: "周六", 6: "周日",
+}
 
 
 def index(request):
@@ -25,7 +30,19 @@ def food_booking(request):
                 data_one["food_loc"] = food_infos.food_location
                 data_one["food_num"] = food_infos.food_num
                 data_one["food_img_url"] = food_infos.food_img.url
-                data_one["food_date"] = food_infos.food_date
+                week = food_infos.food_date.weekday()
+                year = food_infos.food_date.year
+                month = food_infos.food_date.month
+                day = food_infos.food_date.day
+                data_one["food_date"] = {"year": year, "month": month, "day": day, "week": week_dic.get(week)}
+                now_time = datetime.datetime.now()
+                food_time = datetime.datetime(year, month, day, 12, 30)
+                if now_time <= food_time:
+                    status = 1
+                else:
+                    status = 0
+                data_one['food_price'] = food_infos.food_price
+                data_one['food_status'] = status
                 data_list.append(data_one)
             data = {
                 "code": 0,
@@ -53,7 +70,11 @@ def food_info(request, food_id):
             food["food_loc"] = food_infos[0].food_location
             food["food_num"] = food_infos[0].food_num
             food["food_img_url"] = food_infos[0].food_img.url
-            food["food_date"] = food_infos[0].food_date
+            year = food_infos[0].food_date.year
+            month = food_infos[0].food_date.month
+            day = food_infos[0].food_date.day
+            week = food_infos[0].food_date.weekday()
+            food["food_date"] = {"year": year, "month": month, "day": day, "week": week_dic.get(week)}
             data = {
                 "code": 0,
                 "message": "0",
@@ -136,7 +157,11 @@ def my_book(request, my_name):
                 food["food_loc"] = my_book_food.food.food_location
                 food["food_num"] = my_book_food.food.food_num
                 food["food_img_url"] = my_book_food.food.food_img.url
-                food["food_date"] = my_book_food.food.food_date
+                year = my_book_food.food.food_date.day
+                month = my_book_food.food.food_date.month
+                day = my_book_food.food.food_date.day
+                week = my_book_food.food.food_date.weekday()
+                food["food_date"] = {"year": year, "month": month, "day": day, "week": week_dic.get(week)}
                 food_list.append(food)
             data = {
                 "code": 0,
