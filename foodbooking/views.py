@@ -36,7 +36,7 @@ def food_booking(request):
                 day = food_infos.food_date.day
                 data_one["food_date"] = {"year": year, "month": month, "day": day, "week": week_dic.get(week)}
                 now_time = datetime.datetime.now()
-                food_time = datetime.datetime(year, month, day, 12, 30)
+                food_time = datetime.datetime(year, month, day, 16, 00)+datetime.timedelta(-week)
                 if now_time <= food_time:
                     status = 1
                 else:
@@ -62,19 +62,33 @@ def food_info(request, food_id):
     if request.method == "GET":
         food = {}
         food_id = int(food_id)
+        booker = request.GET.get("name")
+        print(booker)
         food_infos = FoodInfo.objects.all().filter(food_status=True).filter(id=food_id)
         if food_infos.exists():
+            all_bookers = list(FoodBooker.objects.all().filter(food=food_infos[0]).values_list('name', flat=True))
             food["food_id"] = food_infos[0].id
+            food["book_num"] = len(all_bookers)
             food["food_title"] = food_infos[0].food_title
             food["food_des"] = food_infos[0].food_description
             food["food_loc"] = food_infos[0].food_location
             food["food_num"] = food_infos[0].food_num
             food["food_img_url"] = food_infos[0].food_img.url
+            if booker in all_bookers:
+                status = 1
+            else:
+                status = 0
+            food["status"] = status
             year = food_infos[0].food_date.year
             month = food_infos[0].food_date.month
             day = food_infos[0].food_date.day
             week = food_infos[0].food_date.weekday()
+            start_date = datetime.datetime(year, month, day)+datetime.timedelta(-week)
+            end_date = start_date + datetime.timedelta(1)
             food["food_date"] = {"year": year, "month": month, "day": day, "week": week_dic.get(week)}
+            food["food_start_date"] = {"year": start_date.year, "month":start_date.month, "day":start_date.day, "week":week_dic.get(start_date.weekday())}
+            food["food_end_date"] = {"year": end_date.year, "month": end_date.month, "day": end_date.day,
+                                       "week": week_dic.get(end_date.weekday())}
             data = {
                 "code": 0,
                 "message": "0",
@@ -90,15 +104,10 @@ def food_info(request, food_id):
     else:
         food_id = int(food_id)
         food = FoodInfo.objects.all().get(id=food_id)
-        all_booker = list(FoodBooker.objects.all().filter(food=food).values_list('name', flat=True))
-        booker = request.POST.get("name")
-        if booker in all_booker:
-            data = {
-                "code": -1,
-                "message": "您已经预定过",
-                "food_id": food_id
-            }
-        else:
+        now_time = datetime.datetime.now()
+        food_time = datetime.datetime(food.food_date.year, food.food_date.month, food.food_date.day, 16, 00) + datetime.timedelta(-food.food_date.weekday())
+        if now_time < food_time:
+            booker = request.POST.get("name")
             num = food.food_num
             if num == 0:
                 data = {
@@ -116,6 +125,12 @@ def food_info(request, food_id):
                     "message": "预定成功",
                     "food_id": food_id
                 }
+        else:
+            data = {
+                "code": -1,
+                "message": "已过预定时间",
+                "food_id": food_id
+            }
         return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
