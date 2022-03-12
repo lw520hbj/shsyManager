@@ -63,7 +63,6 @@ def food_info(request, food_id):
         food = {}
         food_id = int(food_id)
         booker = request.GET.get("name")
-        print(booker)
         food_infos = FoodInfo.objects.all().filter(food_status=True).filter(id=food_id)
         if food_infos.exists():
             all_bookers = list(FoodBooker.objects.all().filter(food=food_infos[0]).values_list('name', flat=True))
