@@ -78,7 +78,8 @@ def food_info(request, food_id):
                 status = 1
             else:
                 status = 0
-            food["status"] = status
+            food["food_status"] = status
+            food["food_price"] = food_infos[0].food_price
             year = food_infos[0].food_date.year
             month = food_infos[0].food_date.month
             day = food_infos[0].food_date.day
