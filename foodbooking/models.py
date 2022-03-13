@@ -24,7 +24,9 @@ class FoodInfo(models.Model):
 
 class FoodBooker(models.Model):
     food = models.ForeignKey(FoodInfo, related_name="菜品预定者", on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, null=False)
+    name = models.CharField(max_length=100, null=False, verbose_name="微信名")
+    openId = models.CharField(max_length=200, null=False, verbose_name="微信openId", default="")
+    cancelTimes = models.IntegerField(null=False, default=0, verbose_name="取消次数")
 
     def __str__(self):
         return self.name + "-" + self.food.food_title + "-" + str(self.food.food_date)

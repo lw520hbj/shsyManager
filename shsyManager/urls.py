@@ -24,4 +24,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('food-book/', include('foodbooking.urls')),
     re_path('media/(?P<path>.*)', serve, {"document_root": settings.MEDIA_ROOT}),
+    path('login/', views.login, name='login')
 ]

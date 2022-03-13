@@ -4,6 +4,7 @@ from django.template import loader
 from .models import FoodInfo,FoodBooker
 import time
 import datetime
+import requests
 from shsyManager.settings import MEDIA_ROOT
 # Create your views here.
 
@@ -189,4 +190,14 @@ def my_book(request, my_name):
                 "message": "您未预定",
                 "food_list": []
             }
+        return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+def login(request):
+    if request.method == "GET":
+        code = request.GET.get("code")
+        app_id = "wx78a0c85a9c914dcd"
+        secret = "13c5d74b68a8bdd93467c70b5ebd8244"
+        url = "https://api.weixin.qq.com/sns/jscode2session?appid=" + app_id + "&secret=" + secret + "&js_code=" + code + "&grant_type=authorization_code"
+        data = requests.get(url).content
         return JsonResponse(data, safe=False, json_dumps_params={'ensure_ascii': False})

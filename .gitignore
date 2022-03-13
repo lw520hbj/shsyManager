@@ -181,3 +181,4 @@ pip-selfcheck.json
 venv
 shsyManger/local_settings.py
 static/media
+foodbooking/migrations
