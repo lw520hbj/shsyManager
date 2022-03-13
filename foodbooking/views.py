@@ -65,9 +65,10 @@ def food_info(request, food_id):
         food = {}
         food_id = int(food_id)
         booker = request.GET.get("name")
+        booker_open_id = request.GET.get("openid")
         food_infos = FoodInfo.objects.all().filter(food_status=True).filter(id=food_id)
         if food_infos.exists():
-            all_bookers = list(FoodBooker.objects.all().filter(food=food_infos[0]).values_list('name', flat=True))
+            all_bookers = list(FoodBooker.objects.all().filter(food=food_infos[0]).values_list('openId', flat=True))
             food["food_id"] = food_infos[0].id
             food["book_num"] = len(all_bookers)
             food["food_title"] = food_infos[0].food_title
@@ -75,10 +76,17 @@ def food_info(request, food_id):
             food["food_loc"] = food_infos[0].food_location
             food["food_num"] = food_infos[0].food_num
             food["food_img_url"] = food_infos[0].food_img.url
-            if booker in all_bookers:
-                status = 1
+            if booker == "" and booker_open_id == "":
+                status = 0  # 未登录
             else:
-                status = 0
+                if booker_open_id in all_bookers:
+                    booker_info = FoodBooker.objects.all().filter(food=food_infos[0]).get(openId=booker_open_id)
+                    if booker_info.cancelTimes == 0:
+                        status = 1  # 已报名
+                    else:
+                        status = -1  # 报名后且取消了
+                else:
+                    status = 2  # 未报名
             food["food_status"] = status
             food["food_price"] = food_infos[0].food_price
             year = food_infos[0].food_date.year
@@ -110,6 +118,7 @@ def food_info(request, food_id):
         food_time = datetime.datetime(food.food_date.year, food.food_date.month, food.food_date.day, 16, 00) + datetime.timedelta(-food.food_date.weekday())
         if now_time < food_time:
             booker = request.POST.get("name")
+            booker_open_id = request.POST.get("openid")
             num = food.food_num
             if num == 0:
                 data = {
@@ -120,7 +129,7 @@ def food_info(request, food_id):
             else:
                 food.food_num = num - 1
                 food.save()
-                food_booker = FoodBooker(food=food, name=booker)
+                food_booker = FoodBooker(food=food, name=booker, openId=booker_open_id)
                 food_booker.save()
                 data = {
                     "code": 0,
